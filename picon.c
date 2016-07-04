@@ -1,11 +1,6 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 
 /* 
- * File:   main.c
+ * File:   picon.c
  * Author: timg
  *
  * Created on June 17, 2016, 12:47 PM
@@ -30,6 +25,7 @@
 #define CONFIG_FILE "picon.conf"
 
 //struct termios pgen_opts;
+
 /**
  * handle CTRL+C
  * @param sig signal number
@@ -37,7 +33,7 @@
 void ctrl_c(int sig)
 {
     printf("\r\n\r\nEnter the command picon to return to console\r\n");
-    
+
     //tcsetattr(STDIN_FILENO, TCSANOW, &pgen_opts);
     exit(0);
 }
@@ -54,7 +50,7 @@ int get_ssh_port_number();
  * @param num_of_ser number of serial devices
  * @return serial map pointer
  */
-int load_serial_map(char *f_name,struct serial_map *ser_map_in,int *num_of_ser);
+int load_serial_map(char *f_name, struct serial_map *ser_map_in, int *num_of_ser);
 
 /**
  * Shows port config from the config file
@@ -91,44 +87,54 @@ int show_port_config(char *f_name)
     }
     return EXIT_SUCCESS;
 }
-int add_user(char *user_name){
+
+int add_user(char *user_name)
+{
     pid_t pid = fork();
-    if (pid==0){
-        char external_cmd[200]="sudo useradd -G serial ";
-        strcat(external_cmd,user_name);
+    if (pid == 0)
+    {
+        char external_cmd[200] = "sudo useradd -G serial ";
+        strcat(external_cmd, user_name);
         system(external_cmd);
-    } else {
-        waitpid(pid,0,0);
-        if (pid==-1) {
+    }
+    else
+    {
+        waitpid(pid, 0, 0);
+        if (pid == -1)
+        {
             printf("Error adding user\r\n");
             return EXIT_FAILURE;
-        } else {
-            printf ("User added\r\n");
+        }
+        else
+        {
+            printf("User added\r\n");
             return EXIT_SUCCESS;
         }
-        
+
     }
-    
+
 }
+
 /**
  * Prints Help
  */
 void print_help()
 {
     printf("Picon utility. The utility helps manage PI console.\r\n");
-    printf(" -config Display configuration.\r\n"
-            "  Usage: picon -config\r\n");
+    //    printf(" -config Display configuration.\r\n"
+    //           "  Usage: picon -config\r\n");
     printf(" -adduser Add user. User will be added to default linux group serial.\r\n"
-            "  Usage: picon -adduser <username>.\r\n");
-    printf(" -tacacs Add tacacs server.\r\n"
-            "  Usage: picon -tacacs <IP> <KEY>\r\n");
+           "  Usage: picon -adduser <username>.\r\n");
+    //    printf(" -tacacs Add tacacs server.\r\n"
+    //           "  Usage: picon -tacacs <IP> <KEY>\r\n");
     printf(" -port Save or show port configuration.\r\n"
-    "  Usage: \r\n"
-            "    show port configuration: picon -port show \r\n");
-// I dont need the followin. This will be pre-configured within the config file
+           "  Usage: \r\n"
+           "    show port configuration: picon -port show \r\n");
+    // I dont need the followin. This will be pre-configured within the config file
     //            "    set tcp port to phisical port mapping: picon -port config map <TCP port> <dev: /dev/ttyUSBX>\r\n"
-//            "    Other port setting can be set while connected to the port\r\n");
+    //            "    Other port setting can be set while connected to the port\r\n");
 }
+
 /*
  * 
  */
@@ -136,67 +142,78 @@ int main(int argc, char** argv)
 {
     int res;
     //res = tcgetattr(STDIN_FILENO, &pgen_opts);
-//    assert(res == 0);
+    //    assert(res == 0);
     //Catch signals, CTRL+C, CTRL+Z
-    signal (SIGINT, ctrl_c);  //ctrl+C
-    signal (SIGTSTP, ctrl_c); //ctrl+Z
+    signal(SIGINT, ctrl_c); //ctrl+C
+    signal(SIGTSTP, ctrl_c); //ctrl+Z
     struct serial_map serial_m[NU_OF_SERIAL_PORTS];
     int number_of_serial_ports;
-    int ret_code = load_serial_map(CONFIG_FILE,&serial_m,&number_of_serial_ports);
+    int ret_code = load_serial_map(CONFIG_FILE, &serial_m, &number_of_serial_ports);
     //Debug:
-//    int i;
-//    for (i=0;i<number_of_serial_ports;i++)
-//    printf ("%s,%d\r\n",serial_m[i].device_name,serial_m[i].port_nu);
-    if (ret_code==EXIT_FAILURE){
-        printf("Failed to load saved file\r\n");
-        return(EXIT_FAILURE);
-    }
-    int port_number,i;
-    port_number=get_ssh_port_number();
-    if (port_number==22)
+    //    int i;
+    //    for (i=0;i<number_of_serial_ports;i++)
+    //    printf ("%s,%d\r\n",serial_m[i].device_name,serial_m[i].port_nu);
+    if (ret_code == EXIT_FAILURE)
     {
-        if (argc<2)
+        printf("Failed to load saved file\r\n");
+        return (EXIT_FAILURE);
+    }
+    int port_number, i;
+    port_number = get_ssh_port_number();
+    if (port_number == 22)
+    {
+        if (argc < 2)
         {
             print_help();
-        } else {
+        }
+        else
+        {
             int i;
             for (i = 0; i < argc; i++)
             {
-                if (strcmp("-config",argv[i])==0)
+                if (strcmp("-config", argv[i]) == 0)
                 {
-                    printf ("cinfog");
-                } 
-                else if (strcmp("-port",argv[i])==0)
+                    printf("cinfog");
+                }
+                else if (strcmp("-port", argv[i]) == 0)
                 {
                     //port config 
-                    if (strcmp("show",argv[i+1])==0){
-                        
-                        
+                    if (strcmp("show", argv[i + 1]) == 0)
+                    {
+
+
                         show_port_config(CONFIG_FILE);
                         i++;
-                    } else if (strcmp("config",argv[i+1]))
+                    }
+                    else if (strcmp("config", argv[i + 1]))
                     {
                         //port config
                     }
                 }
-                else if (strcmp("-tacacs",argv[i])==0)
+                else if (strcmp("-tacacs", argv[i]) == 0)
                 {
                     printf("tacacs");
-                    if (argc<(i+2)){
-                        printf ("not enough parameters at tacacs\r\n");
-                    } else {
+                    if (argc < (i + 2))
+                    {
+                        printf("not enough parameters at tacacs\r\n");
+                    }
+                    else
+                    {
                         //tacacs operate
                     }
                 }
-                else if (strcmp("-adduser",argv[i])==0)
+                else if (strcmp("-adduser", argv[i]) == 0)
                 {
                     i++;
                     char test[20];
-                    strcpy(test,argv[i]);
-                    if (test[0]!='-'){
-                    add_user(argv[i]);
-                    } else {
-                        printf("\r\nUser cannot start with -. Error in username: %s.\r\n",argv[i]);
+                    strcpy(test, argv[i]);
+                    if (test[0] != '-')
+                    {
+                        add_user(argv[i]);
+                    }
+                    else
+                    {
+                        printf("\r\nUser cannot start with '-'. Error in username: %s.\r\n", argv[i]);
                     }
                 }
             }
@@ -204,9 +221,9 @@ int main(int argc, char** argv)
         }
         exit(EXIT_SUCCESS);
     }
-    for (i=0;i<number_of_serial_ports;i++)
+    for (i = 0; i < number_of_serial_ports; i++)
     {
-        if (serial_m[i].port_nu==port_number)
+        if (serial_m[i].port_nu == port_number)
         {
             pid_t pid = fork();
             if (pid == 0)
@@ -215,23 +232,23 @@ int main(int argc, char** argv)
                 char external_cmd[200] = "minicom -D ";
                 strcat(external_cmd, serial_m[i].device_name);
                 system(external_cmd);
-            } else 
+            }
+            else
             {
-                waitpid(pid,0,0);
+                waitpid(pid, 0, 0);
                 return (EXIT_FAILURE);
-                
+
             }
 
-            
+
         }
-//            printf("%s\r\n",serial_m[i].device_name);
+        //            printf("%s\r\n",serial_m[i].device_name);
     }
-            
-            
-            
+
+
+
     return (EXIT_SUCCESS);
 }
-
 
 int get_ssh_port_number()
 {
@@ -249,10 +266,10 @@ int get_ssh_port_number()
     return atoi(p);
 }
 
-int load_serial_map(char *f_name,struct serial_map *ser_map_in,int *num_of_ser)
+int load_serial_map(char *f_name, struct serial_map *ser_map_in, int *num_of_ser)
 {
     struct serial_map serial_m[NU_OF_SERIAL_PORTS];
-    
+
     config_t cfg;
     config_init(&cfg);
     config_setting_t *file_serial_map, *root_conf;
@@ -279,10 +296,10 @@ int load_serial_map(char *f_name,struct serial_map *ser_map_in,int *num_of_ser)
             serial_m[i].port_nu = port_nu;
         }
         memcpy(num_of_ser, &i, sizeof (num_of_ser));
-        
+
     }
-    memcpy(ser_map_in,serial_m,sizeof(serial_m));
-    
+    memcpy(ser_map_in, serial_m, sizeof (serial_m));
+
     return EXIT_SUCCESS;
 }
 
