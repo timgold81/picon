@@ -17,7 +17,6 @@ Advantage of open linux system
 
 #Road Map
 In the future the following features will be developed:
-
 Simplification of TACACS configuration
 Interactive menu
 Case adaptable to Data Center Racks
